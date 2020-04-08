@@ -1,5 +1,5 @@
 # capitok
-End to End demo environment using Cluster API for a base K8S Cluster for Tanzu Application Service on K8S
+End to End demo environment using Cluster API for a base K8S Cluster for Tanzu Application Service on K8S using AMAZON EC2
 
 These instructions are designed to work on a mac
 
