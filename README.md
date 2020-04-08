@@ -16,13 +16,13 @@ Prereqs:
 ## Building the Workload Cluster
 1. Install clusterctl binary 
     ```
-    curl -L  https://github.com/kubernetes-sigs/cluster-api/releases/download/v0.3.3/clusterctl-darwin-amd64
+    curl -L  https://github.com/kubernetes-sigs/cluster-api/releases/download/v0.3.3/clusterctl-darwin-amd64 -o clusterctl
     chmod +x ./clusterctl
     sudo mv ./clusterctl /usr/local/bin/clusterctl
     ```
 1. Install clusterawsadm binary
     ```
-    curl -L https://github.com/kubernetes-sigs/cluster-api-provider-aws/releases/download/v0.5.2/clusterawsadm-darwin-amd64
+    curl -L https://github.com/kubernetes-sigs/cluster-api-provider-aws/releases/download/v0.5.2/clusterawsadm-darwin-amd64 -o clusterawsadm
     chmod +x ./clusterawsadm
     sudo mv ./clusterawsadm /usr/local/bin/clusterawsadm
     ```
