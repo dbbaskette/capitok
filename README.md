@@ -11,7 +11,7 @@ Prereqs:
 * jq
 * helm v3
 * Clone of this repo
-* DNS Domain managed managed at AWS, or change NS entries to 
+* DNS Domain 
 
 ## Building the Workload Cluster
 1. Install clusterctl binary 
