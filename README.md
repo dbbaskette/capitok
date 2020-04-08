@@ -23,8 +23,8 @@ Prereqs:
 1. Install clusterawsadm binary
     ```
     curl -L https://github.com/kubernetes-sigs/cluster-api-provider-aws/releases/download/v0.5.2/clusterawsadm-darwin-amd64
-    chmod +x ./clusterctl
-    sudo mv ./clusterctl /usr/local/bin/clusterctl
+    chmod +x ./clusterawsadm
+    sudo mv ./clusterawsadm /usr/local/bin/clusterawsadm
     ```
 1. Export AWS Variables
     ```
