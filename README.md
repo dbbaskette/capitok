@@ -14,6 +14,10 @@ Prereqs:
 
 
 1) Install clusterctl binary 
-    https://github.com/kubernetes-sigs/cluster-api/releases/download/v0.3.3/clusterctl-darwin-amd64
+    ```
+    curl -L  https://github.com/kubernetes-sigs/cluster-api/releases/download/v0.3.3/clusterctl-darwin-amd64
+    chmod +x ./clusterctl
+    sudo mv ./clusterctl /usr/local/bin/clusterctl
+    ```
 
 
