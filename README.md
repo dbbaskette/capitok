@@ -221,7 +221,7 @@ Prereqs:
     ```
     *.tas.<YOUR_DOMAIN>.  CNAME <ELB-ADDRESS>
     ```
-## LOGIN TO TAS for Kubernetes and Test
+## LOGIN TO TAS for K8S AND TEST
 1. Set the API Target
     ```
     cf api --skip-ssl-validation https://api.tas.<YOUR-DOMAIN>
@@ -254,7 +254,7 @@ Prereqs:
     ```
     cf push
     ```
-    
+
 
 
 
