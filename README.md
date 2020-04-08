@@ -9,7 +9,9 @@ Prereqs:
 * kind
 * AWS cli
 * jq
+* helm v3
 * Clone of this repo
+* DNS Domain managed managed at AWS, or change NS entries to 
 
 ## Building the Workload Cluster
 1. Install clusterctl binary 
@@ -91,8 +93,14 @@ Prereqs:
     kubectl --kubeconfig=$HOME/.kube/config.capi  get machines --all-namespaces
     kubectl --kubeconfig=$HOME/.kube/config.capi  get kubeadmcontrolplane --all-namespaces
     ```
-    ```
-    ![]()
+
+    ![Cluster Ready](https://github.com/dbbaskette/capitok/raw/master/images/cluster-complete.png)
+
+
+
+
+
+
 
 ## Preparing the Workload Cluster for TAS
 1. Get the kubeconfig for the Workload cluster:
@@ -106,6 +114,93 @@ Prereqs:
 1. Install the Calico Networking CNI into the cluster
     ```
     kubectl --kubeconfig=$HOME/.kube/config.tas apply -f https://docs.projectcalico.org/v3.12/manifests/calico.yaml
+1. Add AWS EBS Storage Class for Dynamic Volume Provisioning
+    ```
+    kubectl create -f yaml/aws-ebs-storageclass.yaml
+    ```
+
+## Setup cert-manager and Let's encrypt for SSH certs
+1. Install NGINX Ingress Controller. 
+    ```
+    kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/mandatory.yaml
+    kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/provider/cloud-generic.yaml
+
+    ```
+1. Make a note of the AWS elb assigned to NGINX
+    ```
+    kubectl get svc ingress-nginx --namespace=ingress-nginx -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+    ```
+
+1. Install cert-manager.
+    ```
+    kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v0.14.2/cert-manager.yaml
+    ```
+1. Edit the yaml/staging-issuer.yaml file and add your email address. The create the staging issuer object.
+    ```
+    kubectl create -f yaml/staging-issuer.yaml
+    ```
+1. Create the simple echo test services
+    ```
+    kubectl apply -f yaml/echo1.yaml
+    kubectl apply -f yaml/echo2.yaml
+    ```
+1. Create the ingress for the test services
+    ```
+    kubectl apply -f yaml/echo-ingress-staging.yaml
+    ```
+1. Create a Route53 Zone that matches your Personal DNS domain. Edit your Personal DNS domain to use the same NS records as this new Route53 Zone.  You could also do this as a subdomain, but that's not covered here.
+1. Create Route53 CNAME Records for Test Services
+    ```
+    echo1.<YOUR-DOMAIN>   CNAME <ELB Address from Step Above>
+    echo2.<YOUR-DOMAIN>   CNAME <ELB Address from Step Above>
+    ```
+1. Check if cert was created. This should return Successfully created Certificate echo-tls
+    ```
+    kubectl describe ingress
+    ```
+1. Test the service:
+    ```
+    curl https://echo1.<TOUR-DOMAIN>
+    curl https://echo2.<TOUR-DOMAIN>
+    ```
+1. Edit the yaml/prod-issuer.yaml file and add your email address. The create the production issuer object.
+    ```
+    kubectl create -f yaml/prod-issuer.yaml
+    ```
+1. Create the ingress for the production issuer
+    ```
+    kubectl apply -f yaml/echo-ingress-prod.yaml
+    ```
+1.  Verify certificate was created properly
+    ```
+    kubectl describe certificate
+    ```
+## Install Harbor Container Registry
+
+1. Add Bitnami Repo to Helm
+    ```
+    helm repo add bitnami https://charts.bitnami.com/bitnami
+    ```
+1. Edit yaml/harbor-value.yaml and insert your domain name
+1. Install harbor via Helm
+    ```
+    helm install harbor-release bitnami/harbor -f yaml/harbor-values.yaml
+1. When install is complete, use kubectl to get the elb address (should be smae as echo tests). Then, create a Route53 CNAME record that points harbor.<YOUR-DOMAIN> to that elb address.
+    ```
+    kubectl get ingress harbor-release-ingress
+    ```
+1. You can now login to harbor with the *admin* user.  Run this command to get the password:
+    ```
+    kubectl get secret --namespace default harbor-release-core-envvars -o=jsonpath='{.data.HARBOR_ADMIN_PASSWORD}' | base64 --decode
+    ```
+1. Create a project in harbor called tas-workloads.
+    ![Create Project](https://github.com/dbbaskette/capitok/raw/master/images/harbor-repo1.png)
+
+
+
+
+
+
 
 
 
