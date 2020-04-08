@@ -195,6 +195,74 @@ Prereqs:
     ```
 1. Create a project in harbor called tas-workloads.
     ![Create Project](https://github.com/dbbaskette/capitok/raw/master/images/harbor-repo1.png)
+## INSTALL TAS for Kubernetes
+1. Obtain the tarfile release of tas for k8s and extract it.
+1. Remove the custom overlay that uses clusterIP instead of a Load Balancer
+    ```
+    rm -f ./custom-overlays/replace-loadbalancer-with-clusterip.yaml
+    ```
+1. Edit yaml/tas-exports.sh and then source it.
+    ```
+    source yaml/tas-exports.sh
+    ```
+1. Generate Deployment defaults
+    ```
+    ./bin/generate-values.sh -d "tas.<YOUR-DOMAIN>" > /tmp/deployment-values.yml
+    ```
+1. Install TAS for K8s
+    ```
+    ./bin/install-tas.sh /tmp/deployment-values.yml
+    ```
+1. Get the name of the AWS ELB created for the Istio Gateway.
+    ```
+    kubectl get svc istio-ingressgateway --namespace=istio-system
+    ```
+1. Create a ROUTE53 cname record in your DNS Zone that redirects a wildcard tas domain to the ELB from the previous step.
+    ```
+    *.tas.<YOUR_DOMAIN>.  CNAME <ELB-ADDRESS>
+    ```
+## LOGIN TO TAS for Kubernetes and Test
+1. Set the API Target
+    ```
+    cf api --skip-ssl-validation https://api.tas.<YOUR-DOMAIN>
+    ```
+1. Get the admin password from the deployment file
+    ```
+    cat /tmp/deployment-values.yml| grep cf_admin_password
+    ```
+1. Login as admin
+    ```
+    cf auth admin <password>
+    ```
+1. Enable docker container support (THIS IS A TEMP STEP)
+    ```
+    cf enable-feature-flag diego_docker
+    ```
+1. Create Test Org and Space
+    ```
+    cf create-org test-org
+    cf create-space -o test-org test-space
+    cf target -o test-org -s test-space
+    ```
+1. Clone Application for deployment and build it
+    ```
+    git clone https://github.com/cloudfoundry-samples/spring-music.git
+    cd spring-music
+    ./gradlew clean assemble
+    ```
+1. Push application to TAS
+    ```
+    cf push
+    ```
+    
+
+
+
+
+
+    
+
+
 
 
 
