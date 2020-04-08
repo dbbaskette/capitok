@@ -3,60 +3,59 @@ End to End demo environment using Cluster API for a base K8S Cluster for Tanzu A
 
 These instructions are designed to work on a mac
 
-
-Setup ClusterAPI and AWS
-------------------------
-
 Prereqs:
 * kubectl
 * docker
 * kind
 * AWS cli
 * jq
+* Clone of this repo
 
-
-1) Install clusterctl binary 
+## Building the Workload Cluster
+1. Install clusterctl binary 
     ```
     curl -L  https://github.com/kubernetes-sigs/cluster-api/releases/download/v0.3.3/clusterctl-darwin-amd64
     chmod +x ./clusterctl
     sudo mv ./clusterctl /usr/local/bin/clusterctl
     ```
-2) Install clusterawsadm binary
+1. Install clusterawsadm binary
     ```
     curl -L https://github.com/kubernetes-sigs/cluster-api-provider-aws/releases/download/v0.5.2/clusterawsadm-darwin-amd64
     chmod +x ./clusterctl
     sudo mv ./clusterctl /usr/local/bin/clusterctl
     ```
-3) Export AWS Variables
+1. Export AWS Variables
     ```
     source env-files/aws-exports.sh
     ```
-4) Create local management cluster:
+1. Create local management cluster:
     ```
     kind create cluster --name clusterapi
     ```
-5) Create the Cloudformation Stack
+1. Create the Cloudformation Stack
     ```
     clusterawsadm alpha bootstrap create-stack
     ```
-6) Initialize the Management Cluster
+1. Initialize the Management Cluster
     ```
     clusterctl init --infrastructure aws
     ```
-7) Backup the kubeconfig
+1. Backup the kubeconfig
     ```
     cp $HOME/.kube/config  $HOME/.kube/config.capi
     ```
-8) Build the cluster configuration
+1. Build the cluster configuration
     ```
     clusterctl config cluster tas --kubernetes-version v1.15.7 --control-plane-machine-count=1 --worker-machine-count=6 --kubeconfig=$HOME/.kube/config.capi > tas.yaml
     ```
-9) Modify the tas.yaml file to adjust root disk sizing.  Add:
+1. Modify the tas.yaml file to adjust root disk sizing.  Add these lines to the AWSMachineTemplate spec.  The result should look like this:
+
     ```
     rootVolume:
         size: 25
-to the AWSMachineTemplate spec.  The result should look like this:
-
+    ```
+    result:
+    ```
     apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
     kind: AWSMachineTemplate
     metadata:
@@ -70,10 +69,47 @@ to the AWSMachineTemplate spec.  The result should look like this:
         sshKeyName: tmc
         rootVolume:
             size: 25
-10) Create your Workload cluster for your TAS deployment:
     ```
-    kubectl --kubeconfig=/Users/dbaskette/.kube/config.capi  apply -f ./tas.yaml
+1. Create your Workload cluster for your TAS deployment:
     ```
+    kubectl --kubeconfig=$HOME/.kube/config.capi  apply -f ./tas.yaml
+    ```
+    Output:
+    
+    ```
+    cluster.cluster.x-k8s.io/tas created
+    awscluster.infrastructure.cluster.x-k8s.io/tas created
+    kubeadmcontrolplane.controlplane.cluster.x-k8s.io/tas-control-plane created
+    awsmachinetemplate.infrastructure.cluster.x-k8s.io/tas-control-plane created
+    machinedeployment.cluster.x-k8s.io/tas-md-0 created
+    awsmachinetemplate.infrastructure.cluster.x-k8s.io/tas-md-0 created
+    kubeadmconfigtemplate.bootstrap.cluster.x-k8s.io/tas-md-0 created
+    ```
+1. Monitor the status until complete (it will take awhile). **kubeadmcontrolplane** will report as *initialized*:
+    ```
+    kubectl --kubeconfig=$HOME/.kube/config.capi  get cluster --all-namespaces
+    kubectl --kubeconfig=$HOME/.kube/config.capi  get machines --all-namespaces
+    kubectl --kubeconfig=$HOME/.kube/config.capi  get kubeadmcontrolplane --all-namespaces
+    ```
+    ```
+    ![]()
+
+## Preparing the Workload Cluster for TAS
+1. Get the kubeconfig for the Workload cluster:
+    ```
+    kubectl --kubeconfig=$HOME/.kube/config.capi --namespace=default get secret/tas-kubeconfig -o jsonpath={.data.value} | base64 --decode > /Users/dbaskette/.kube/config.tas
+    ```
+1. Make the kubeconfig the default;
+    ```
+    cp $HOME/.kube/config.tas $HOME/.kube/config
+    ```
+1. Install the Calico Networking CNI into the cluster
+    ```
+    kubectl --kubeconfig=$HOME/.kube/config.tas apply -f https://docs.projectcalico.org/v3.12/manifests/calico.yaml
+
+
+
+
 
 
 
