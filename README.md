@@ -201,9 +201,9 @@ Prereqs:
     ```
     rm -f ./custom-overlays/replace-loadbalancer-with-clusterip.yaml
     ```
-1. Edit env/tas-exports.sh and then source it.
+1. Edit env-files/tas-exports.sh and then source it.
     ```
-    source env/tas-exports.sh
+    source env-files/tas-exports.sh
     ```
 1. Generate Deployment defaults
     ```
