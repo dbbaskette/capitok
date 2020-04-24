@@ -160,9 +160,10 @@ Prereqs:
     ```
 1. Test the service:
     ```
-    curl https://echo1.<TOUR-DOMAIN>
-    curl https://echo2.<TOUR-DOMAIN>
+    curl https://echo1.<YOUR-DOMAIN>
+    curl https://echo2.<YOUR-DOMAIN>
     ```
+    NOTE: The `curl` may fail. In thise case, ignore it and proceed.
 1. Edit the yaml/prod-issuer.yaml file and add your email address. The create the production issuer object.
     ```
     kubectl create -f yaml/prod-issuer.yaml
